@@ -107,13 +107,21 @@ def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
     for r in results:
         for box in r.boxes:
             cls_id = int(box.cls[0])
-            label = model.names[cls_id]
+            raw_label = model.names[cls_id]
             confidence = float(box.conf[0])
-
 
             # Filter below minimum threshold
             if confidence < WEAK_CONF:
                 continue
+
+            # --- THE HACKATHON FIX --- 
+            # 1. Force the correct labels based on data.yaml
+            if cls_id == 0 or raw_label == "Trapped_Person":
+                label = "person"
+            elif cls_id == 1 or raw_label == "Rubble":
+                label = "Rubble"
+            else:
+                label = raw_label
 
             # Classify tier
             if confidence >= STRONG_CONF:
@@ -130,7 +138,7 @@ def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
             x1, y1, x2, y2 = box.xyxy[0].tolist()
 
             boxes.append({
-                "label": label,
+                "label": "Survivor" if label == "person" else label, # Make it look pro for the UI
                 "confidence": round(confidence, 2),
                 "x": round(x1, 1),
                 "y": round(y1, 1),
