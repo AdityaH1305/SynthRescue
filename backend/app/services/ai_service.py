@@ -120,6 +120,7 @@ def _build_prompt(
 # ---------------------------------------------------------------------------
 _MAX_RETRIES = 2
 _RETRY_DELAY_SECS = 2.0
+_MODEL = "gemini-2.5-flash-lite"
 
 
 def generate_report(
@@ -152,7 +153,7 @@ def generate_report(
         try:
             # Using the new SDK format and upgrading to Gemini 2.0 Flash
             response = client.models.generate_content(
-                model="gemini-2.5-flash", 
+                model="gemini-2.5-flash-lite", 
                 contents=prompt,
             )
             report_text = (getattr(response, "text", "") or "").strip()
