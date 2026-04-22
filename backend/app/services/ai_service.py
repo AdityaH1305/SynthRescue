@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 _client = None
 
 
-import google.generativeai as genai
+from google import genai
 
 def _get_client():
     global _client
@@ -33,8 +33,8 @@ def _get_client():
             logger.warning("GEMINI_API_KEY not set — AI reports will use fallback.")
             return None
         try:
-            genai.configure(api_key=api_key)
-            _client = genai.GenerativeModel("gemini-1.5-flash-latest")
+            # New SDK initialization
+            _client = genai.Client(api_key=api_key)
         except Exception as exc:
             logger.error("Failed to initialise Gemini client: %s", exc)
             return None
@@ -151,7 +151,11 @@ def generate_report(
 
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            response = client.generate_content(prompt)
+            # Using the new SDK format and upgrading to Gemini 2.0 Flash
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", 
+                contents=prompt,
+            )
             report_text = (getattr(response, "text", "") or "").strip()
             if not report_text:
                 raise ValueError("Empty response from Gemini")
