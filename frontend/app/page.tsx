@@ -100,10 +100,9 @@ export default function Home() {
             className={`
               mt-5 w-full py-3 rounded-xl font-semibold text-sm tracking-wide
               transition-all duration-200
-              ${
-                !file || loading
-                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-lg shadow-red-900/30"
+              ${!file || loading
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-lg shadow-red-900/30"
               }
             `}
           >
