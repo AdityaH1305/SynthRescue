@@ -88,10 +88,26 @@ Rules:
 """
 
 
-def _build_prompt(summary: str, severity: str) -> str:
+def _build_prompt(
+    summary: str,
+    severity: str,
+    people_strong: int,
+    people_weak: int,
+    people_estimate: int,
+) -> str:
     return (
         f"{_SYSTEM_PROMPT}\n\n"
         f"Detection summary:\n{summary}\n\n"
+        f"Detection details:\n"
+        f"- Confirmed people: {people_strong}\n"
+        f"- Possible people: {people_weak}\n"
+        f"- Estimated people: {people_estimate}\n\n"
+        f"Context:\n"
+        f"- The detection model identifies rubble and structural debris.\n"
+        f"- Human presence may be inferred indirectly from debris patterns.\n\n"
+        f"Task:\n"
+        f"- Infer likelihood of trapped individuals based on rubble density and uncertainty.\n"
+        f"- Adjust response recommendations accordingly.\n\n"
         f"Assessed severity: {severity}"
     )
 
@@ -122,7 +138,13 @@ def generate_report(
         return _fallback_report(summary, severity, people_strong, people_weak,
                                 reason="Gemini client unavailable")
 
-    prompt = _build_prompt(summary, severity)
+    prompt = _build_prompt(
+        summary,
+        severity,
+        people_strong,
+        people_weak,
+        people_estimate,
+    )
 
     for attempt in range(1, _MAX_RETRIES + 1):
         try:

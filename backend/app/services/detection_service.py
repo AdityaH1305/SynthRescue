@@ -163,7 +163,7 @@ def _build_summary(strong: int, weak: int) -> str:
     total_confirmed = strong
 
     if strong == 0 and weak == 0:
-        return "No people clearly detected in the scene."
+        return "No people directly detected. Significant structural debris present."
 
     if strong == 0 and weak > 0:
         return (
