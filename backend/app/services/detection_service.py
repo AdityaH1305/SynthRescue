@@ -16,9 +16,39 @@ from ultralytics import YOLO
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Model (loaded once at import time)
+# Model (lazy-loaded on first use, cached thereafter)
 # ---------------------------------------------------------------------------
-_model = YOLO("yolov8n.pt")
+from pathlib import Path
+
+# Resolve relative to *this* file so the path is correct regardless of cwd
+_SERVICE_DIR = Path(__file__).resolve().parent          # app/services/
+_BACKEND_DIR = _SERVICE_DIR.parent.parent               # backend/
+MODEL_PATH = _BACKEND_DIR / "models" / "best.pt"
+
+logger.info("Resolved YOLO model path: %s", MODEL_PATH)
+logger.info("Model file exists: %s", MODEL_PATH.exists())
+
+_model = None  # will be populated by _get_model()
+
+
+def _get_model():
+    """Return the cached YOLO model, loading it on first call."""
+    global _model
+    if _model is not None:
+        return _model
+
+    if not MODEL_PATH.exists():
+        logger.error("YOLO model NOT found at %s — detections will use fallback", MODEL_PATH)
+        return None
+
+    try:
+        _model = YOLO(str(MODEL_PATH))
+        logger.info("YOLO model loaded successfully from %s", MODEL_PATH)
+    except Exception as exc:
+        logger.error("Failed to load YOLO model: %s — detections will use fallback", exc)
+        _model = None
+
+    return _model
 
 # ---------------------------------------------------------------------------
 # Config
@@ -44,9 +74,13 @@ def detect(image_bytes: bytes) -> Dict[str, Any]:
         image_width     — original image width (for frontend overlay)
         image_height    — original image height
     """
+    model = _get_model()
+    if model is None:
+        return _fallback_detect()
     try:
-        return _yolo_detect(image_bytes)
+        return _yolo_detect(image_bytes, model)
     except Exception as exc:
+        print("YOLO ERROR:", str(exc))   # 👈 ADD THIS
         logger.error("YOLO detection failed, using fallback: %s", exc)
         return _fallback_detect()
 
@@ -54,7 +88,7 @@ def detect(image_bytes: bytes) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # YOLO inference + post-processing
 # ---------------------------------------------------------------------------
-def _yolo_detect(image_bytes: bytes) -> Dict[str, Any]:
+def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
     # Decode image
     img_array = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
@@ -62,21 +96,20 @@ def _yolo_detect(image_bytes: bytes) -> Dict[str, Any]:
         raise ValueError("Could not decode image bytes")
 
     img_h, img_w = img.shape[:2]
-    results = _model(img)
+    results = model(img)
 
     boxes: List[Dict[str, Any]] = []
     strong = 0
     weak = 0
+    person_strong = 0
+    person_weak = 0
 
     for r in results:
         for box in r.boxes:
             cls_id = int(box.cls[0])
-            label = _model.names[cls_id]
+            label = model.names[cls_id]
             confidence = float(box.conf[0])
 
-            # Filter to allowed classes only
-            if label not in ALLOWED_CLASSES:
-                continue
 
             # Filter below minimum threshold
             if confidence < WEAK_CONF:
@@ -86,9 +119,13 @@ def _yolo_detect(image_bytes: bytes) -> Dict[str, Any]:
             if confidence >= STRONG_CONF:
                 tier = "strong"
                 strong += 1
+                if label == "person":
+                    person_strong += 1
             else:
                 tier = "weak"
                 weak += 1
+                if label == "person":
+                    person_weak += 1
 
             x1, y1, x2, y2 = box.xyxy[0].tolist()
 
@@ -103,10 +140,10 @@ def _yolo_detect(image_bytes: bytes) -> Dict[str, Any]:
             })
 
     # --- Build realistic summary ---
-    summary = _build_summary(strong, weak)
-
+    summary = _build_summary(person_strong, person_weak)
     # --- People estimate (strong + half of weak, rounded up) ---
     people_estimate = strong + -(-weak // 2)   # ceil division
+    
 
     return {
         "boxes": boxes,
