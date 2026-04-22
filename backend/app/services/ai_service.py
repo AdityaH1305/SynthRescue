@@ -120,7 +120,6 @@ def _build_prompt(
 # ---------------------------------------------------------------------------
 _MAX_RETRIES = 2
 _RETRY_DELAY_SECS = 2.0
-_MODEL = "gemini-1.5-flash"
 
 
 def generate_report(

@@ -80,7 +80,6 @@ def detect(image_bytes: bytes) -> Dict[str, Any]:
     try:
         return _yolo_detect(image_bytes, model)
     except Exception as exc:
-        print("YOLO ERROR:", str(exc))   # 👈 ADD THIS
         logger.error("YOLO detection failed, using fallback: %s", exc)
         return _fallback_detect()
 
@@ -99,8 +98,6 @@ def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
     results = model(img)
 
     boxes: List[Dict[str, Any]] = []
-    strong = 0
-    weak = 0
     person_strong = 0
     person_weak = 0
 
@@ -126,12 +123,10 @@ def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
             # Classify tier
             if confidence >= STRONG_CONF:
                 tier = "strong"
-                strong += 1
                 if label == "person":
                     person_strong += 1
             else:
                 tier = "weak"
-                weak += 1
                 if label == "person":
                     person_weak += 1
 
