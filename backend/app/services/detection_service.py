@@ -142,14 +142,14 @@ def _yolo_detect(image_bytes: bytes, model) -> Dict[str, Any]:
     # --- Build realistic summary ---
     summary = _build_summary(person_strong, person_weak)
     # --- People estimate (strong + half of weak, rounded up) ---
-    people_estimate = strong + -(-weak // 2)   # ceil division
+    people_estimate = person_strong + -(-person_weak // 2)   # ceil division
     
 
     return {
         "boxes": boxes,
         "summary": summary,
-        "people_strong": strong,
-        "people_weak": weak,
+        "people_strong": person_strong,
+        "people_weak": person_weak,
         "people_estimate": people_estimate,
         "image_width": img_w,
         "image_height": img_h,
