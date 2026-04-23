@@ -55,7 +55,7 @@ def _get_model():
 # ---------------------------------------------------------------------------
 ALLOWED_CLASSES = {"person"}
 STRONG_CONF = 0.5       # high-confidence threshold
-WEAK_CONF = 0.3         # low-confidence threshold (included but flagged)
+WEAK_CONF = 0.3       # low-confidence threshold (included but flagged)
 
 
 # ---------------------------------------------------------------------------
