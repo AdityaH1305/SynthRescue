@@ -1,5 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Target, Eye, Scan } from "lucide-react";
+
 interface Box {
   label: string;
   confidence?: number;
@@ -20,79 +23,88 @@ export default function DetectionCard({ summary, boxes }: DetectionCardProps) {
   const weakCount = boxes.filter((b) => b.tier === "weak").length;
 
   return (
-    <div
+    <motion.div
       id="detection-card"
-      className="bg-gray-800/60 border border-gray-700 rounded-xl p-5"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.15 }}
+      className="bg-slate-900/40 border border-cyan-glow/15 rounded-none p-5 backdrop-blur-md"
     >
-      <h3 className="text-base font-semibold text-gray-200 mb-3 flex items-center gap-2">
-        <span className="text-lg">🔍</span> Detection Summary
+      <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-3 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
+        <Scan className="w-4 h-4" />
+        DETECTION SUMMARY
       </h3>
 
-      <p className="text-sm text-gray-300 mb-4 leading-relaxed">{summary}</p>
+      <p className="text-sm text-slate-300 mb-4 leading-relaxed font-mono">
+        {summary}
+      </p>
 
       {/* Stats bar */}
       {boxes.length > 0 && (
-        <div className="flex gap-3 mb-4">
-          <div className="flex items-center gap-1.5 bg-emerald-900/30 text-emerald-400 text-xs font-medium px-3 py-1.5 rounded-lg">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            {strongCount} confirmed
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex items-center gap-1.5 bg-cyan-glow/5 text-cyan-glow text-[10px] font-mono font-medium px-3 py-1.5 rounded-none border border-cyan-glow/15 uppercase tracking-wider">
+            <Target className="w-3 h-3" />
+            {strongCount} CONFIRMED
           </div>
           {weakCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-amber-900/30 text-amber-400 text-xs font-medium px-3 py-1.5 rounded-lg">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              {weakCount} possible
+            <div className="flex items-center gap-1.5 bg-amber-alert/5 text-amber-alert text-[10px] font-mono font-medium px-3 py-1.5 rounded-none border border-amber-alert/15 uppercase tracking-wider">
+              <Eye className="w-3 h-3" />
+              {weakCount} POSSIBLE
             </div>
           )}
-          <div className="flex items-center gap-1.5 bg-gray-700/50 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg">
-            {boxes.length} total detections
+          <div className="flex items-center gap-1.5 bg-slate-800/50 text-slate-400 text-[10px] font-mono font-medium px-3 py-1.5 rounded-none border border-slate-700/50 uppercase tracking-wider">
+            {boxes.length} TOTAL
           </div>
         </div>
       )}
 
-      {/* Detection list — clean, no raw coords */}
+      {/* Detection list */}
       {boxes.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {boxes.map((box, i) => (
-            <div
+            <motion.div
               key={i}
-              className="flex items-center justify-between bg-gray-900/60 rounded-lg px-4 py-2 text-sm"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.05 * i }}
+              className="flex items-center justify-between bg-slate-950/60 rounded-none px-4 py-2 text-sm border border-slate-800/50 hover:border-cyan-glow/20 transition-colors"
             >
               <div className="flex items-center gap-2">
                 <span
-                  className={`w-2 h-2 rounded-full ${
-                    box.tier === "strong" ? "bg-emerald-400" : "bg-amber-400"
+                  className={`w-1.5 h-1.5 ${
+                    box.tier === "strong" ? "bg-cyan-glow" : "bg-amber-alert"
                   }`}
                 />
-                <span className="text-gray-200 font-medium capitalize">
+                <span className="text-slate-200 font-mono text-xs uppercase tracking-wide">
                   {box.label.replace(/_/g, " ")}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-3 text-[10px] font-mono">
                 {box.confidence != null && (
                   <span
-                    className={`font-mono ${
+                    className={`${
                       box.tier === "strong"
-                        ? "text-emerald-400"
-                        : "text-amber-400"
+                        ? "text-cyan-glow"
+                        : "text-amber-alert"
                     }`}
                   >
                     {(box.confidence * 100).toFixed(0)}%
                   </span>
                 )}
-                <span className="text-gray-600">
-                  {box.tier === "strong" ? "confirmed" : "possible"}
+                <span className="text-slate-600 uppercase tracking-wider">
+                  {box.tier === "strong" ? "CONFIRMED" : "POSSIBLE"}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
 
       {boxes.length === 0 && (
-        <p className="text-xs text-gray-500 italic">
-          No detections above confidence threshold.
+        <p className="text-[10px] text-slate-600 font-mono uppercase tracking-wider">
+          NO DETECTIONS ABOVE CONFIDENCE THRESHOLD.
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }

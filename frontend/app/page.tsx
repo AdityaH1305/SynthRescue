@@ -1,6 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Shield,
+  Radio,
+  AlertTriangle,
+  Activity,
+  Satellite,
+} from "lucide-react";
 import UploadBox from "./components/UploadBox";
 import ResultPanel, { PredictionResult } from "./components/ResultPanel";
 
@@ -53,56 +61,107 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
+    <main className="relative min-h-screen tactical-grid radar-glow scanline-overlay overflow-hidden">
+      {/* ─── Top status bar ─── */}
+      <div className="border-b border-cyan-glow/10 bg-[#0a0c10]/90 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-glow/50">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-cyan-glow rounded-full animate-pulse" />
+              SYSTEM ONLINE
+            </span>
+            <span className="text-cyan-glow/20">|</span>
+            <span>FREQ 142.8 MHz</span>
+          </div>
+          <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-glow/40">
+            <Activity className="w-3 h-3" />
+            <span>TACTICAL UPLINK ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
       {/* ─── Header ─── */}
-      <header className="pt-10 pb-6 text-center">
-        <h1
-          id="app-title"
-          className="text-4xl md:text-5xl font-extrabold tracking-tight"
+      <header className="relative z-10 pt-8 pb-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <span className="text-red-500">🚨</span>{" "}
-          <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-            SynthRescue
-          </span>
-        </h1>
-        <p className="mt-2 text-sm text-gray-400 max-w-md mx-auto">
-          AI-powered disaster response — upload a scene image and receive an
-          instant emergency analysis report.
-        </p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Shield className="w-8 h-8 text-red-critical" />
+            <h1
+              id="app-title"
+              className="text-3xl md:text-4xl font-extrabold tracking-tight font-mono uppercase"
+            >
+              <span className="text-red-critical">SYNTH</span>
+              <span className="text-cyan-glow">RESCUE</span>
+            </h1>
+            <Shield className="w-8 h-8 text-red-critical" />
+          </div>
+          <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-glow/40">
+            <Radio className="w-3 h-3" />
+            AI-POWERED DISASTER RESPONSE COMMAND
+            <Radio className="w-3 h-3" />
+          </div>
+        </motion.div>
       </header>
 
-      {/* ─── Content ─── */}
-      <div className="max-w-6xl mx-auto px-4 pb-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* ── Left: Upload ── */}
-        <section className="bg-gray-900/70 backdrop-blur rounded-2xl border border-gray-800 p-6 flex flex-col">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <span>📤</span> Upload Disaster Image
+      {/* ─── Main Grid ─── */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* ── Left: Upload Panel ── */}
+        <motion.section
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 flex flex-col"
+        >
+          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-4 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
+            <Satellite className="w-4 h-4" />
+            IMAGERY UPLOAD TERMINAL
           </h2>
 
           <UploadBox onFileSelected={handleFileSelected} />
 
           {/* Image preview (before analysis) */}
-          {preview && !result && (
-            <div className="mt-4 rounded-xl overflow-hidden border border-gray-700">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={preview}
-                alt="Uploaded preview"
-                className="w-full max-h-64 object-contain bg-black"
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {preview && !result && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="mt-4 rounded-none overflow-hidden border border-cyan-glow/20 relative"
+              >
+                {/* Corner targeting marks */}
+                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-glow z-10" />
+                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-glow z-10" />
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-glow z-10" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-glow z-10" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={preview}
+                  alt="Uploaded preview"
+                  className="w-full max-h-64 object-contain bg-black"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent h-8" />
+                <span className="absolute bottom-1 left-2 text-[9px] font-mono text-cyan-glow/50 uppercase">
+                  RAW FEED — AWAITING ANALYSIS
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <button
+          <motion.button
             id="analyze-btn"
             onClick={handleAnalyze}
             disabled={!file || loading}
+            whileHover={!file || loading ? {} : { scale: 1.01 }}
+            whileTap={!file || loading ? {} : { scale: 0.98 }}
             className={`
-              mt-5 w-full py-3 rounded-xl font-semibold text-sm tracking-wide
-              transition-all duration-200
+              mt-5 w-full py-3 rounded-none font-mono font-bold text-sm tracking-[0.15em] uppercase
+              transition-all duration-200 border
               ${!file || loading
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-lg shadow-red-900/30"
+                ? "bg-slate-900/50 text-slate-600 border-slate-800 cursor-not-allowed"
+                : "bg-red-critical/10 text-red-critical border-red-critical/40 hover:bg-red-critical/20 hover:border-red-critical/70 hover:shadow-[0_0_20px_rgba(255,23,68,0.15)]"
               }
             `}
           >
@@ -127,49 +186,66 @@ export default function Home() {
                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                   />
                 </svg>
-                Analyzing…
+                PROCESSING IMAGERY…
               </span>
             ) : (
-              "Analyze Image"
+              <span className="flex items-center justify-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                INITIATE SCAN
+              </span>
             )}
-          </button>
-        </section>
+          </motion.button>
+        </motion.section>
 
-        {/* ── Right: Results ── */}
-        <section className="bg-gray-900/70 backdrop-blur rounded-2xl border border-gray-800 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <span>📋</span> Analysis Results
+        {/* ── Right: Results Panel ── */}
+        <motion.section
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="lg:col-span-7 glass-panel corner-brackets rounded-none p-5"
+        >
+          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-4 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
+            <Activity className="w-4 h-4" />
+            THREAT ANALYSIS OUTPUT
           </h2>
 
           {/* Error state */}
-          {error && (
-            <div
-              id="error-banner"
-              className="mb-4 p-4 rounded-xl bg-red-900/30 border border-red-700/50 text-sm text-red-300"
-            >
-              <p className="font-semibold mb-1">⚠️ Something went wrong</p>
-              <p>{error}</p>
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                id="error-banner"
+                className="mb-4 p-4 rounded-none bg-red-critical/10 border border-red-critical/30 text-sm text-red-400 font-mono"
+              >
+                <p className="font-bold mb-1 flex items-center gap-2 uppercase text-xs tracking-wider">
+                  <AlertTriangle className="w-4 h-4" />
+                  SYSTEM ERROR
+                </p>
+                <p className="text-red-400/80">{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Loading skeleton */}
           {loading && (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-8 bg-gray-800 rounded-full w-40 mx-auto" />
-              <div className="h-48 bg-gray-800 rounded-xl" />
-              <div className="h-32 bg-gray-800 rounded-xl" />
-              <div className="h-48 bg-gray-800 rounded-xl" />
+            <div className="space-y-3 animate-pulse">
+              <div className="h-6 bg-slate-800/60 rounded-none w-36" />
+              <div className="h-52 bg-slate-800/40 rounded-none border border-cyan-glow/5" />
+              <div className="h-28 bg-slate-800/40 rounded-none border border-cyan-glow/5" />
+              <div className="h-40 bg-slate-800/40 rounded-none border border-cyan-glow/5" />
             </div>
           )}
 
           {/* Results */}
           {!loading && <ResultPanel result={result} previewSrc={preview} />}
-        </section>
+        </motion.section>
       </div>
 
       {/* ─── Footer ─── */}
-      <footer className="text-center text-xs text-gray-600 pb-6">
-        SynthRescue · Disaster Response AI · Built for impact
+      <footer className="relative z-10 text-center text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-glow/20 pb-6 border-t border-cyan-glow/5 pt-4 mt-auto">
+        SYNTHRESCUE v2.0 · TACTICAL AI RESPONSE · CLASSIFICATION: UNCLASSIFIED
       </footer>
     </main>
   );

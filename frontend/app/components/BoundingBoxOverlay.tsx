@@ -19,12 +19,27 @@ interface BoundingBoxOverlayProps {
   imageHeight: number;
 }
 
-const TIER_COLORS: Record<string, { stroke: string; fill: string }> = {
-  strong: { stroke: "#22c55e", fill: "rgba(34, 197, 94, 0.15)" },
-  weak: { stroke: "#f59e0b", fill: "rgba(245, 158, 11, 0.10)" },
+const TIER_COLORS: Record<string, { stroke: string; fill: string; glow: string }> = {
+  strong: {
+    stroke: "#00e5ff",
+    fill: "rgba(0, 229, 255, 0.08)",
+    glow: "rgba(0, 229, 255, 0.4)",
+  },
+  weak: {
+    stroke: "#ffab00",
+    fill: "rgba(255, 171, 0, 0.06)",
+    glow: "rgba(255, 171, 0, 0.3)",
+  },
 };
 
-const DEFAULT_COLOR = { stroke: "#3b82f6", fill: "rgba(59, 130, 246, 0.12)" };
+const DEFAULT_COLOR = {
+  stroke: "#00e5ff",
+  fill: "rgba(0, 229, 255, 0.06)",
+  glow: "rgba(0, 229, 255, 0.3)",
+};
+
+const CORNER_SIZE = 8;
+const LINE_WIDTH = 1.5;
 
 export default function BoundingBoxOverlay({
   imageSrc,
@@ -64,31 +79,85 @@ export default function BoundingBoxOverlay({
 
         const colors = TIER_COLORS[box.tier ?? ""] ?? DEFAULT_COLOR;
 
-        // Fill
+        // Subtle fill
         ctx.fillStyle = colors.fill;
         ctx.fillRect(bx, by, bw, bh);
 
-        // Border
+        // Thin targeting border
         ctx.strokeStyle = colors.stroke;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = LINE_WIDTH;
+        ctx.setLineDash([4, 3]);
         ctx.strokeRect(bx, by, bw, bh);
+        ctx.setLineDash([]);
+
+        // Corner crosshairs — top-left
+        ctx.lineWidth = 2;
+        ctx.shadowColor = colors.glow;
+        ctx.shadowBlur = 6;
+        
+        // Top-left corner
+        ctx.beginPath();
+        ctx.moveTo(bx, by + CORNER_SIZE);
+        ctx.lineTo(bx, by);
+        ctx.lineTo(bx + CORNER_SIZE, by);
+        ctx.stroke();
+
+        // Top-right corner
+        ctx.beginPath();
+        ctx.moveTo(bx + bw - CORNER_SIZE, by);
+        ctx.lineTo(bx + bw, by);
+        ctx.lineTo(bx + bw, by + CORNER_SIZE);
+        ctx.stroke();
+
+        // Bottom-left corner
+        ctx.beginPath();
+        ctx.moveTo(bx, by + bh - CORNER_SIZE);
+        ctx.lineTo(bx, by + bh);
+        ctx.lineTo(bx + CORNER_SIZE, by + bh);
+        ctx.stroke();
+
+        // Bottom-right corner
+        ctx.beginPath();
+        ctx.moveTo(bx + bw - CORNER_SIZE, by + bh);
+        ctx.lineTo(bx + bw, by + bh);
+        ctx.lineTo(bx + bw, by + bh - CORNER_SIZE);
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+
+        // Small center crosshair
+        const cx = bx + bw / 2;
+        const cy = by + bh / 2;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(cx - 4, cy);
+        ctx.lineTo(cx + 4, cy);
+        ctx.moveTo(cx, cy - 4);
+        ctx.lineTo(cx, cy + 4);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
 
         // Label
         const conf = box.confidence != null ? ` ${(box.confidence * 100).toFixed(0)}%` : "";
         const labelText = `${box.label}${conf}`;
 
-        ctx.font = "bold 12px system-ui, sans-serif";
+        ctx.font = "bold 10px 'Geist Mono', 'Courier New', monospace";
         const metrics = ctx.measureText(labelText);
-        const labelH = 18;
-        const labelW = metrics.width + 8;
+        const labelH = 16;
+        const labelW = metrics.width + 10;
 
         // Label background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(bx, by - labelH - 2, labelW, labelH);
+
+        // Label left accent bar
         ctx.fillStyle = colors.stroke;
-        ctx.fillRect(bx, by - labelH, labelW, labelH);
+        ctx.fillRect(bx, by - labelH - 2, 2, labelH);
 
         // Label text
-        ctx.fillStyle = "#fff";
-        ctx.fillText(labelText, bx + 4, by - 5);
+        ctx.fillStyle = colors.stroke;
+        ctx.fillText(labelText, bx + 6, by - 6);
       }
     };
 
@@ -110,7 +179,21 @@ export default function BoundingBoxOverlay({
   }, [boxes, imageWidth, imageHeight, imageSrc]);
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-gray-700">
+    <div className="relative rounded-none overflow-hidden border border-cyan-glow/20 bg-black">
+      {/* Tactical corner marks */}
+      <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-cyan-glow z-20" />
+      <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-cyan-glow z-20" />
+      <div className="absolute bottom-0 left-0 w-5 h-5 border-b-2 border-l-2 border-cyan-glow z-20" />
+      <div className="absolute bottom-0 right-0 w-5 h-5 border-b-2 border-r-2 border-cyan-glow z-20" />
+
+      {/* Feed label */}
+      <div className="absolute top-2 left-7 z-20 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+        <span className="text-[9px] font-mono text-red-400 uppercase tracking-wider">
+          LIVE DETECTION FEED
+        </span>
+      </div>
+
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
@@ -122,14 +205,15 @@ export default function BoundingBoxOverlay({
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none"
       />
+
       {/* Legend */}
       {boxes.length > 0 && (
-        <div className="absolute bottom-2 right-2 flex gap-2">
-          <span className="text-[10px] bg-black/70 text-emerald-400 px-2 py-0.5 rounded">
-            ● Strong ≥50%
+        <div className="absolute bottom-2 right-7 flex gap-2 z-20">
+          <span className="text-[9px] bg-black/80 text-cyan-glow px-2 py-0.5 rounded-none font-mono border border-cyan-glow/20">
+            ■ CONFIRMED ≥50%
           </span>
-          <span className="text-[10px] bg-black/70 text-amber-400 px-2 py-0.5 rounded">
-            ● Weak 30-50%
+          <span className="text-[9px] bg-black/80 text-amber-alert px-2 py-0.5 rounded-none font-mono border border-amber-alert/20">
+            ■ POSSIBLE 30-50%
           </span>
         </div>
       )}

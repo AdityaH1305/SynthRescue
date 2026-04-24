@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Radar, MonitorOff } from "lucide-react";
 import SeverityBadge from "./SeverityBadge";
 import DetectionCard from "./DetectionCard";
 import ReportCard from "./ReportCard";
@@ -31,15 +33,31 @@ interface ResultPanelProps {
 export default function ResultPanel({ result, previewSrc }: ResultPanelProps) {
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center text-gray-500 py-12">
-        <span className="text-3xl mb-2">📊</span>
-        <p className="text-sm">Upload &amp; analyze an image to see results</p>
+      <div className="flex flex-col items-center justify-center text-slate-600 py-16">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        >
+          <Radar className="w-12 h-12 text-cyan-glow/15 mb-3" />
+        </motion.div>
+        <p className="text-xs font-mono uppercase tracking-[0.2em] text-slate-600 mt-2">
+          NO ACTIVE FEED
+        </p>
+        <p className="text-[10px] font-mono text-slate-700 mt-1 flex items-center gap-1.5">
+          <MonitorOff className="w-3 h-3" />
+          UPLOAD &amp; SCAN TO INITIALIZE
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-4"
+    >
       {/* Severity */}
       <div className="flex justify-center">
         <SeverityBadge level={result.severity_level} />
@@ -60,6 +78,6 @@ export default function ResultPanel({ result, previewSrc }: ResultPanelProps) {
 
       {/* AI Report */}
       <ReportCard report={result.report} aiSource={result.ai_source} />
-    </div>
+    </motion.div>
   );
 }

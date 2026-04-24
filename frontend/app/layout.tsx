@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SynthRescue — AI Disaster Response",
+  title: "SynthRescue — AI Disaster Response Command",
   description:
     "Upload disaster scene images and receive instant AI-powered emergency analysis reports for rescue coordination.",
 };
@@ -26,9 +26,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0a0c10] text-[#c8cdd3]">
+        {children}
+      </body>
     </html>
   );
 }
