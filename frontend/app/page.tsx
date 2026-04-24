@@ -113,14 +113,14 @@ export default function Home() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 h-full flex flex-col"
+          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 flex flex-col gap-6"
         >
-          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-4 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
+          <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
             <Satellite className="w-4 h-4" />
             IMAGERY UPLOAD TERMINAL
           </h2>
 
-          <div className="flex-grow">
+          <div>
             <UploadBox onFileSelected={handleFileSelected} />
 
             {/* Image preview (before analysis) */}
@@ -159,7 +159,7 @@ export default function Home() {
             whileHover={!file || loading ? {} : { scale: 1.01 }}
             whileTap={!file || loading ? {} : { scale: 0.98 }}
             className={`
-              mt-5 w-full py-3 rounded-none font-mono font-bold text-sm tracking-[0.15em] uppercase
+              w-full py-3 rounded-none font-mono font-bold text-sm tracking-[0.15em] uppercase
               transition-all duration-200 border
               ${!file || loading
                 ? "bg-slate-900/50 text-slate-600 border-slate-800 cursor-not-allowed"
