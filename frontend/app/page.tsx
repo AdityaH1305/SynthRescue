@@ -107,23 +107,24 @@ export default function Home() {
       </header>
 
       {/* ─── Main Grid ─── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* ── Left: Upload Panel ── */}
         <motion.section
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 flex flex-col sticky top-8"
+          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 h-full flex flex-col"
         >
           <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-4 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
             <Satellite className="w-4 h-4" />
             IMAGERY UPLOAD TERMINAL
           </h2>
 
-          <UploadBox onFileSelected={handleFileSelected} />
+          <div className="flex-grow">
+            <UploadBox onFileSelected={handleFileSelected} />
 
-          {/* Image preview (before analysis) */}
-          <AnimatePresence>
+            {/* Image preview (before analysis) */}
+            <AnimatePresence>
             {preview && !result && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -149,6 +150,7 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
 
           <motion.button
             id="analyze-btn"
