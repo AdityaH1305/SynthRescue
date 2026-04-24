@@ -60,40 +60,40 @@ export default function DetectionCard({ summary, boxes }: DetectionCardProps) {
 
       {/* Detection list */}
       {boxes.length > 0 && (
-        <div className="space-y-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {boxes.map((box, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 * i }}
-              className="flex items-center justify-between bg-slate-950/60 rounded-none px-4 py-2 text-sm border border-slate-800/50 hover:border-cyan-glow/20 transition-colors"
+              className="flex flex-col gap-2 bg-slate-950/60 rounded-none p-4 text-sm border border-slate-800/50 hover:border-cyan-glow/40 transition-colors"
             >
               <div className="flex items-center gap-2">
                 <span
-                  className={`w-1.5 h-1.5 ${
+                  className={`w-2 h-2 ${
                     box.tier === "strong" ? "bg-cyan-glow" : "bg-amber-alert"
-                  }`}
+                  } animate-pulse`}
                 />
-                <span className="text-slate-200 font-mono text-xs uppercase tracking-wide">
+                <span className="text-slate-200 font-mono text-xs uppercase tracking-wide font-bold">
                   {box.label.replace(/_/g, " ")}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[10px] font-mono">
+              <div className="flex items-center justify-between text-[10px] font-mono border-t border-slate-800 pt-2 mt-1">
+                <span className="text-slate-500 uppercase tracking-wider">
+                  {box.tier === "strong" ? "CONFIRMED" : "POSSIBLE"}
+                </span>
                 {box.confidence != null && (
                   <span
                     className={`${
                       box.tier === "strong"
                         ? "text-cyan-glow"
                         : "text-amber-alert"
-                    }`}
+                    } font-bold`}
                   >
                     {(box.confidence * 100).toFixed(0)}%
                   </span>
                 )}
-                <span className="text-slate-600 uppercase tracking-wider">
-                  {box.tier === "strong" ? "CONFIRMED" : "POSSIBLE"}
-                </span>
               </div>
             </motion.div>
           ))}

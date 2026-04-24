@@ -56,7 +56,7 @@ export default function ResultPanel({ result, previewSrc }: ResultPanelProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="space-y-4"
+      className="flex flex-col space-y-4"
     >
       {/* Severity */}
       <div className="flex justify-center">

@@ -140,7 +140,7 @@ export default function Home() {
                 <img
                   src={preview}
                   alt="Uploaded preview"
-                  className="w-full max-h-64 object-contain bg-black"
+                  className="w-full max-h-[50vh] object-contain bg-black"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent h-8" />
                 <span className="absolute bottom-1 left-2 text-[9px] font-mono text-cyan-glow/50 uppercase">

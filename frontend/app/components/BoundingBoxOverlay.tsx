@@ -199,7 +199,7 @@ export default function BoundingBoxOverlay({
         ref={imgRef}
         src={imageSrc}
         alt="Detection preview"
-        className="w-full max-h-80 object-contain bg-black"
+        className="w-full max-h-[50vh] object-contain bg-black"
       />
       <canvas
         ref={canvasRef}
