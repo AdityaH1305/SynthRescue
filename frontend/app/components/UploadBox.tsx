@@ -74,7 +74,7 @@ export default function UploadBox({ onFileSelected }: UploadBoxProps) {
             className="flex flex-col items-center gap-2"
           >
             <CheckCircle className="w-8 h-8 text-emerald-400" />
-            <p className="text-sm text-emerald-400 font-mono font-medium tracking-wide">
+            <p className="text-sm text-emerald-400 font-mono font-medium tracking-wide truncate max-w-full block px-4">
               {fileName}
             </p>
             <p className="text-[10px] text-cyan-glow/40 font-mono uppercase tracking-wider">

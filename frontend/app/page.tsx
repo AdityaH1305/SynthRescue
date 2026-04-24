@@ -107,13 +107,13 @@ export default function Home() {
       </header>
 
       {/* ─── Main Grid ─── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* ── Left: Upload Panel ── */}
         <motion.section
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 flex flex-col"
+          className="lg:col-span-5 glass-panel corner-brackets rounded-none p-5 flex flex-col sticky top-8"
         >
           <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-4 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
             <Satellite className="w-4 h-4" />
