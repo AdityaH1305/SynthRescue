@@ -17,6 +17,9 @@ interface BoundingBoxOverlayProps {
   boxes: Box[];
   imageWidth: number;
   imageHeight: number;
+  // ADDED CODE START — Highlight selected box
+  selectedDetectionId?: number | null;
+  // ADDED CODE END
 }
 
 const TIER_COLORS: Record<string, { stroke: string; fill: string; glow: string }> = {
@@ -46,6 +49,9 @@ export default function BoundingBoxOverlay({
   boxes,
   imageWidth,
   imageHeight,
+  // ADDED CODE START — Destructure highlight prop
+  selectedDetectionId = null,
+  // ADDED CODE END
 }: BoundingBoxOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -71,7 +77,8 @@ export default function BoundingBoxOverlay({
 
       ctx.clearRect(0, 0, displayW, displayH);
 
-      for (const box of boxes) {
+      for (let boxIndex = 0; boxIndex < boxes.length; boxIndex++) {
+        const box = boxes[boxIndex];
         const bx = box.x * scaleX;
         const by = box.y * scaleY;
         const bw = box.w * scaleX;
@@ -79,16 +86,39 @@ export default function BoundingBoxOverlay({
 
         const colors = TIER_COLORS[box.tier ?? ""] ?? DEFAULT_COLOR;
 
+        // ADDED CODE START — Check if this box is the highlighted one
+        const isHighlighted = selectedDetectionId === boxIndex;
+        // ADDED CODE END
+
         // Subtle fill
-        ctx.fillStyle = colors.fill;
+        // ADDED CODE START — Brighter fill when highlighted
+        if (isHighlighted) {
+          ctx.fillStyle = box.tier === "weak"
+            ? "rgba(255, 171, 0, 0.18)"
+            : "rgba(0, 229, 255, 0.18)";
+        } else {
+          ctx.fillStyle = colors.fill;
+        }
+        // ADDED CODE END
         ctx.fillRect(bx, by, bw, bh);
 
         // Thin targeting border
         ctx.strokeStyle = colors.stroke;
-        ctx.lineWidth = LINE_WIDTH;
-        ctx.setLineDash([4, 3]);
+        // ADDED CODE START — Thicker border when highlighted
+        ctx.lineWidth = isHighlighted ? 3 : LINE_WIDTH;
+        // ADDED CODE END
+        ctx.setLineDash(isHighlighted ? [] : [4, 3]);
         ctx.strokeRect(bx, by, bw, bh);
         ctx.setLineDash([]);
+
+        // ADDED CODE START — Extra glow on highlighted box
+        if (isHighlighted) {
+          ctx.shadowColor = colors.glow;
+          ctx.shadowBlur = 16;
+          ctx.strokeRect(bx, by, bw, bh);
+          ctx.shadowBlur = 0;
+        }
+        // ADDED CODE END
 
         // Corner crosshairs — top-left
         ctx.lineWidth = 2;
@@ -176,7 +206,7 @@ export default function BoundingBoxOverlay({
       img.removeEventListener("load", draw);
       observer.disconnect();
     };
-  }, [boxes, imageWidth, imageHeight, imageSrc]);
+  }, [boxes, imageWidth, imageHeight, imageSrc, selectedDetectionId]);
 
   return (
     <div className="relative rounded-none overflow-hidden border border-cyan-glow/20 bg-black">

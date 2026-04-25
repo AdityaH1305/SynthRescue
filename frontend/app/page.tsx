@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -8,9 +8,30 @@ import {
   AlertTriangle,
   Activity,
   Satellite,
+  Clock,
+  History,
 } from "lucide-react";
 import UploadBox from "./components/UploadBox";
 import ResultPanel, { PredictionResult } from "./components/ResultPanel";
+
+// ADDED CODE START — Scan status type
+type ScanStatus = "idle" | "uploading" | "detecting" | "reporting" | "completed";
+
+const STATUS_LABELS: Record<ScanStatus, string> = {
+  idle: "",
+  uploading: "Uploading...",
+  detecting: "Running detection...",
+  reporting: "Generating report...",
+  completed: "Completed",
+};
+
+interface HistoryEntry {
+  fileName: string;
+  result: PredictionResult | null;
+  preview: string | null;
+  timestamp: string;
+}
+// ADDED CODE END
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -21,11 +42,37 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ADDED CODE START — Feature 1: Scan status
+  const [scanStatus, setScanStatus] = useState<ScanStatus>("idle");
+  // ADDED CODE END
+
+  // ADDED CODE START — Feature 2: Click-to-highlight
+  const [selectedDetectionId, setSelectedDetectionId] = useState<number | null>(null);
+  const handleSelectDetection = useCallback((id: number | null) => {
+    setSelectedDetectionId((prev) => (prev === id ? null : id));
+  }, []);
+  // ADDED CODE END
+
+  // ADDED CODE START — Feature 4: Upload history
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  // ADDED CODE END
+
+  // ADDED CODE START — Feature 5: Scan timing
+  const [scanDuration, setScanDuration] = useState<number | null>(null);
+  const [scanTimestamp, setScanTimestamp] = useState<string | null>(null);
+  // ADDED CODE END
+
   const handleFileSelected = (f: File) => {
     setFile(f);
     setPreview(URL.createObjectURL(f));
     setResult(null);
     setError(null);
+    // ADDED CODE START — Reset on new file
+    setScanStatus("idle");
+    setSelectedDetectionId(null);
+    setScanDuration(null);
+    setScanTimestamp(null);
+    // ADDED CODE END
   };
 
   const handleAnalyze = async () => {
@@ -34,10 +81,20 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    // ADDED CODE START — Reset states for new scan
+    setScanStatus("uploading");
+    setSelectedDetectionId(null);
+    setScanDuration(null);
+    setScanTimestamp(null);
+    const scanStartTime = performance.now();
+    // ADDED CODE END
 
     try {
       const formData = new FormData();
       formData.append("file", file);
+      // ADDED CODE START — Update status to detecting
+      setScanStatus("detecting");
+      // ADDED CODE END
 
       const res = await fetch(`${API_URL}/predict`, {
         method: "POST",
@@ -49,12 +106,36 @@ export default function Home() {
         throw new Error(body?.detail ?? `Server error (${res.status})`);
       }
 
+      // ADDED CODE START — Update status to reporting
+      setScanStatus("reporting");
+      // ADDED CODE END
       const data: PredictionResult = await res.json();
       setResult(data);
+      // ADDED CODE START — Mark completed, record timing & history
+      setScanStatus("completed");
+      const elapsed = (performance.now() - scanStartTime) / 1000;
+      setScanDuration(parseFloat(elapsed.toFixed(2)));
+      const now = new Date();
+      const ts = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setScanTimestamp(ts);
+      // Add to history (keep last 3)
+      setHistory((prev) => {
+        const entry: HistoryEntry = {
+          fileName: file.name,
+          result: data,
+          preview: preview,
+          timestamp: ts,
+        };
+        return [entry, ...prev.filter((h) => h.fileName !== file.name)].slice(0, 3);
+      });
+      // ADDED CODE END
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to connect to the server.";
       setError(message);
+      // ADDED CODE START — Reset status on error
+      setScanStatus("idle");
+      // ADDED CODE END
     } finally {
       setLoading(false);
     }
@@ -197,6 +278,60 @@ export default function Home() {
               </span>
             )}
           </motion.button>
+
+          {/* ADDED CODE START — Feature 1: Scan status indicator */}
+          {scanStatus !== "idle" && (
+            <div className="mt-3 flex items-center justify-center gap-2">
+              {scanStatus !== "completed" && (
+                <span className="w-1.5 h-1.5 bg-cyan-glow rounded-full animate-pulse" />
+              )}
+              {scanStatus === "completed" && (
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+              )}
+              <span
+                className={`text-[10px] font-mono uppercase tracking-[0.15em] ${
+                  scanStatus === "completed" ? "text-emerald-400" : "text-cyan-glow/70"
+                }`}
+              >
+                {STATUS_LABELS[scanStatus]}
+              </span>
+            </div>
+          )}
+          {/* ADDED CODE END */}
+
+          {/* ADDED CODE START — Feature 4: Recent Scans */}
+          {history.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-cyan-glow/10">
+              <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-glow/40 mb-3 flex items-center gap-2">
+                <History className="w-3 h-3" />
+                RECENT SCANS
+              </h3>
+              <div className="flex flex-col gap-1.5">
+                {history.map((entry, idx) => (
+                  <button
+                    key={`${entry.fileName}-${idx}`}
+                    onClick={() => {
+                      if (entry.result) {
+                        setResult(entry.result);
+                        if (entry.preview) setPreview(entry.preview);
+                        setScanStatus("completed");
+                        setSelectedDetectionId(null);
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 bg-slate-950/60 border border-slate-800/50 hover:border-cyan-glow/30 transition-colors flex items-center justify-between group"
+                  >
+                    <span className="text-[10px] font-mono text-slate-400 group-hover:text-cyan-glow truncate max-w-[70%]">
+                      {entry.fileName}
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-600">
+                      {entry.timestamp}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* ADDED CODE END */}
         </motion.section>
 
         {/* ── Right: Results Panel ── */}
@@ -241,7 +376,18 @@ export default function Home() {
           )}
 
           {/* Results */}
-          {!loading && <ResultPanel result={result} previewSrc={preview} />}
+          {!loading && (
+            <ResultPanel
+              result={result}
+              previewSrc={preview}
+              // ADDED CODE START — Pass new props
+              selectedDetectionId={selectedDetectionId}
+              onSelectDetection={handleSelectDetection}
+              scanDuration={scanDuration}
+              scanTimestamp={scanTimestamp}
+              // ADDED CODE END
+            />
+          )}
         </motion.section>
       </div>
 

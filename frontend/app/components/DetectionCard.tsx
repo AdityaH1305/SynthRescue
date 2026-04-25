@@ -16,9 +16,20 @@ interface Box {
 interface DetectionCardProps {
   summary: string;
   boxes: Box[];
+  // ADDED CODE START — Click-to-highlight props
+  selectedDetectionId?: number | null;
+  onSelectDetection?: (id: number | null) => void;
+  // ADDED CODE END
 }
 
-export default function DetectionCard({ summary, boxes }: DetectionCardProps) {
+export default function DetectionCard({
+  summary,
+  boxes,
+  // ADDED CODE START — Destructure highlight props
+  selectedDetectionId = null,
+  onSelectDetection,
+  // ADDED CODE END
+}: DetectionCardProps) {
   const strongCount = boxes.filter((b) => b.tier === "strong").length;
   const weakCount = boxes.filter((b) => b.tier === "weak").length;
 
@@ -67,7 +78,15 @@ export default function DetectionCard({ summary, boxes }: DetectionCardProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 * i }}
-              className="flex flex-col gap-2 bg-slate-950/60 rounded-none p-4 text-sm border border-slate-800/50 hover:border-cyan-glow/40 transition-colors"
+              // ADDED CODE START — Click handler for highlight
+              onClick={() => onSelectDetection?.(i)}
+              style={{ cursor: onSelectDetection ? "pointer" : undefined }}
+              className={`flex flex-col gap-2 bg-slate-950/60 rounded-none p-4 text-sm border transition-all duration-200 ${
+                selectedDetectionId === i
+                  ? "border-cyan-glow shadow-[0_0_12px_rgba(0,229,255,0.25)] bg-cyan-glow/5"
+                  : "border-slate-800/50 hover:border-cyan-glow/40"
+              }`}
+              // ADDED CODE END
             >
               <div className="flex items-center gap-2">
                 <span

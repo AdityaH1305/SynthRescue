@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Radar, MonitorOff } from "lucide-react";
+import { Radar, MonitorOff, Clock, Timer } from "lucide-react";
 import SeverityBadge from "./SeverityBadge";
 import DetectionCard from "./DetectionCard";
 import ReportCard from "./ReportCard";
@@ -28,9 +28,24 @@ export interface PredictionResult {
 interface ResultPanelProps {
   result: PredictionResult | null;
   previewSrc: string | null;
+  // ADDED CODE START — New props for features 2, 5
+  selectedDetectionId?: number | null;
+  onSelectDetection?: (id: number | null) => void;
+  scanDuration?: number | null;
+  scanTimestamp?: string | null;
+  // ADDED CODE END
 }
 
-export default function ResultPanel({ result, previewSrc }: ResultPanelProps) {
+export default function ResultPanel({
+  result,
+  previewSrc,
+  // ADDED CODE START — Destructure new props
+  selectedDetectionId = null,
+  onSelectDetection,
+  scanDuration = null,
+  scanTimestamp = null,
+  // ADDED CODE END
+}: ResultPanelProps) {
   if (!result) {
     return (
       <div className="flex flex-col items-center justify-center text-slate-600 py-16">
@@ -70,11 +85,40 @@ export default function ResultPanel({ result, previewSrc }: ResultPanelProps) {
           boxes={result.boxes}
           imageWidth={result.image_width}
           imageHeight={result.image_height}
+          // ADDED CODE START — Pass highlight state
+          selectedDetectionId={selectedDetectionId}
+          // ADDED CODE END
         />
       )}
 
       {/* Detection */}
-      <DetectionCard summary={result.summary} boxes={result.boxes} />
+      <DetectionCard
+        summary={result.summary}
+        boxes={result.boxes}
+        // ADDED CODE START — Pass highlight props
+        selectedDetectionId={selectedDetectionId}
+        onSelectDetection={onSelectDetection}
+        // ADDED CODE END
+      />
+
+      {/* ADDED CODE START — Feature 5: Scan metadata */}
+      {(scanDuration !== null || scanTimestamp !== null) && (
+        <div className="flex flex-wrap items-center gap-4 py-2 px-1">
+          {scanDuration !== null && (
+            <span className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-glow/50 uppercase tracking-wider">
+              <Timer className="w-3 h-3" />
+              SCAN TIME: {scanDuration}s
+            </span>
+          )}
+          {scanTimestamp !== null && (
+            <span className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-glow/50 uppercase tracking-wider">
+              <Clock className="w-3 h-3" />
+              COMPLETED: {scanTimestamp}
+            </span>
+          )}
+        </div>
+      )}
+      {/* ADDED CODE END */}
 
       {/* AI Report */}
       <ReportCard report={result.report} aiSource={result.ai_source} />
