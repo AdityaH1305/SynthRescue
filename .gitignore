@@ -1,6 +1,20 @@
-node_modules/
-.next/
-venv/
-__pycache__/
-*.pyc
+# -----------------------------
+# Backend (Python / FastAPI)
+# -----------------------------
+backend/venv/
+backend/__pycache__/
+**/*.pyc
+backend/.env
+
+# Ignore heavy YOLO base weights
+backend/yolov8n.pt
+*.pt
+
+# EXCEPTION: Keep your custom trained model for the judges!
+!backend/models/best.pt
+
+# -----------------------------
+# Global / OS Files
+# -----------------------------
+.DS_Store
 .env
