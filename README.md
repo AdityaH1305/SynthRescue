@@ -42,6 +42,8 @@ To get this live for the **Solution Challenge 2026**, we had to overcome several
 1. **Zero-Manual Labeling:** We wrote scripts to extract 3D mesh vertices from Blender, calculate 2D camera bounds, and programmatically generate mathematically perfect YOLO `.txt` labels natively.
 2. **Negative Sample Alignment:** We merged 3,115 real-world disaster images and programmatically generated blank `.txt` labels for images containing *only* rubble. This explicitly taught the AI to ignore broken concrete, drastically reducing false positive rates to achieve our 96.7% precision.
 3. **Cloud Run Memory Management:** When PyTorch and YOLO initially crashed our serverless deployment, we diagnosed the OOM (Out-of-Memory) error, resolved Debian `libgl1` OpenCV dependencies inside our Dockerfile, and scaled the Google Cloud Run container to `4Gi` for stable production inference.
+4. Full-Stack Cloud Sync: Solved the "Host Binding" trap by reconfiguring Uvicorn to 0.0.0.0 and wired the Vercel-to-Cloud-Run pipeline using a decoupled environment variable architecture.
+5. Safety-First Testing: Navigated generative AI safety filters by leveraging specialized simulation data and mannequin-based testing environments for final pipeline validation.
 
 ---
 *Built for the Hack2skill Solution Challenge 2026.*
