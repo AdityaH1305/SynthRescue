@@ -1,0 +1,8 @@
+# SynthRescue - Environment Dependencies
+ultralytics>=8.4.39
+torch>=2.11.0
+torchvision
+opencv-python
+PyYAML
+pandas
+matplotlib

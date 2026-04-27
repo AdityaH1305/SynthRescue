@@ -1,0 +1,44 @@
+# --- Python / ML ---
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+*.cache
+
+# --- Dataset / Data (Local only) ---
+dataset/
+*.zip
+*.rar
+
+# --- YOLO / Training Artifacts ---
+*.pt
+!best.pt
+*.onnx
+*.engine
+script/runs/
+script/runs_v1_baseline/
+script/synth_rescue_v2_production/
+args.yaml
+results.csv
+results.png
+confusion_matrix*.png
+labels.jpg
+Box*_curve.png
+train_batch*.jpg
+val_batch*.jpg
+val_pred*.jpg
+
+# --- Blender / 3D Assets ---
+*.blend1
+*.blend2
+quit.blend
+
+# --- Environments / Local Config ---
+.venv/
+env/
+venv/
+.vscode/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
