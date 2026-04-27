@@ -13,10 +13,9 @@ During structural collapses, real-world images of people 90% buried in rubble ar
 ---
 
 ## 🏆 Key Results (V3 Unified Production Model)
-Trained natively on an RTX 5050 using ~6,115 unified images (Synthetic + Real-World Negative Samples):
-* **Survivor Recall:** **98.3%** (Near-zero chance of missing a trapped person)
-* **Survivor Precision:** **100%** (Zero false alarms; rescue teams won't dig for ghosts)
-* **Overall mAP50:** **0.911**
+Trained natively on an **NVIDIA GeForce RTX 5050 Laptop GPU** using **~6,115 unified images** (3,000 Procedural Synthetic + 3,115 Real-World):
+* **Survivor Precision:** **96.7%** (Near-zero false alarms; rescue teams won't waste time digging for ghosts)
+* **Survivor Recall:** **73.7%** (Strong baseline for detecting heavily buried and occluded individuals)
 
 ---
 
@@ -30,7 +29,7 @@ A high-urgency, zero-clutter Next.js dashboard deployed on **Vercel**. First res
 
 ### 2. [`/backend`](./backend/) — The Vision & Cognitive Engine
 A high-performance Python FastAPI microservice deployed via Docker on **Google Cloud Run** (configured with 4GB RAM for heavy ML inference). 
-* **Tech:** Python 3.10, FastAPI, Ultralytics YOLOv8, Google GenAI SDK (`gemini-2.5-flash-lite`).
+* **Tech:** Python 3.10, FastAPI, Ultralytics YOLOv8n, Google GenAI SDK (`gemini-2.5-flash-lite`).
 
 ### 3. [`/synthetic_engine`](./synthetic_engine/) — Procedural Data Generation
 The core ML pipeline and 3D environment that created our training data. Contains the master Blender file and the Python automation scripts for bounding box calculation and Roboflow negative-sample merging.
@@ -41,7 +40,7 @@ The core ML pipeline and 3D environment that created our training data. Contains
 ## 🛠️ The Hackathon Journey (How we built it)
 To get this live for the **Solution Challenge 2026**, we had to overcome several complex engineering bottlenecks:
 1. **Zero-Manual Labeling:** We wrote scripts to extract 3D mesh vertices from Blender, calculate 2D camera bounds, and programmatically generate mathematically perfect YOLO `.txt` labels natively.
-2. **Negative Sample Alignment:** We merged 3,115 real-world disaster images and programmatically generated blank `.txt` labels for images containing *only* rubble. This explicitly taught the AI to ignore broken concrete, pushing our false positive rate to zero.
+2. **Negative Sample Alignment:** We merged 3,115 real-world disaster images and programmatically generated blank `.txt` labels for images containing *only* rubble. This explicitly taught the AI to ignore broken concrete, drastically reducing false positive rates to achieve our 96.7% precision.
 3. **Cloud Run Memory Management:** When PyTorch and YOLO initially crashed our serverless deployment, we diagnosed the OOM (Out-of-Memory) error, resolved Debian `libgl1` OpenCV dependencies inside our Dockerfile, and scaled the Google Cloud Run container to `4Gi` for stable production inference.
 
 ---
