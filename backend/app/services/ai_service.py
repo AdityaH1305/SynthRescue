@@ -68,26 +68,60 @@ def classify_severity(
 # Gemini prompt
 # ---------------------------------------------------------------------------
 _SYSTEM_PROMPT = """\
-You are **SynthRescue AI**, an emergency-response analysis system used by
-rescue coordinators during disaster events.
+You are an AI disaster response assistant generating a structured emergency dispatch report.
 
-Given the detection summary below, produce a concise emergency report with
-exactly these three sections:
+Your output will be rendered directly in a UI, so formatting MUST be clean, readable, and consistent.
 
-**Situation Overview**
-One paragraph: what was detected, likely scenario, and immediate risks.
+STRICT FORMATTING RULES:
 
-**Recommended Actions**
-3–5 numbered steps, concrete and prioritised.
+1. DO NOT use markdown symbols like **, ##, or ###
+2. DO NOT use asterisks (*) anywhere
+3. DO NOT output raw paragraphs longer than 2-3 lines
+4. Use clean section titles in ALL CAPS
+5. Use bullet points (•) for lists
+6. Use numbered steps ONLY for actions
+7. Maintain clear spacing between sections
+8. Keep language concise, professional, and operational
+9. Highlight critical terms using UPPERCASE (e.g., HIGH RISK, CRITICAL)
+10. Ensure output is visually scannable (like a real command report)
 
-**Resource Estimate**
-Bullet list of personnel, vehicles, and equipment likely needed.
+----------------------------------------
 
-Rules:
-- Be realistic, professional, and actionable.
-- Keep the entire report under 200 words.
-- Never include disclaimers about being an AI.
-- If uncertainty is indicated, acknowledge it and recommend visual confirmation.
+OUTPUT STRUCTURE (MANDATORY):
+
+SITUATION OVERVIEW
+Short, broken-down statements describing:
+- Number of individuals detected
+- Structural condition
+- Any uncertainty
+
+RISKS
+• List key risks (short phrases only)
+
+RECOMMENDED ACTIONS
+1. Step-by-step operational actions
+2. Keep each step concise (1 line max)
+
+RESOURCE REQUIREMENTS
+
+PERSONNEL
+• List roles
+
+VEHICLES
+• List required vehicles
+
+EQUIPMENT
+• List required equipment
+
+----------------------------------------
+
+STYLE REQUIREMENTS:
+
+- No long paragraphs
+- No decorative text
+- No emojis
+- No explanations outside sections
+- Keep tone like a real emergency response system
 """
 
 
@@ -100,18 +134,13 @@ def _build_prompt(
 ) -> str:
     return (
         f"{_SYSTEM_PROMPT}\n\n"
-        f"Detection summary:\n{summary}\n\n"
-        f"Detection details:\n"
-        f"- Confirmed people: {people_strong}\n"
-        f"- Possible people: {people_weak}\n"
-        f"- Estimated people: {people_estimate}\n\n"
-        f"Context:\n"
-        f"- The detection model identifies rubble and structural debris.\n"
-        f"- Human presence may be inferred indirectly from debris patterns.\n\n"
-        f"Task:\n"
-        f"- Infer likelihood of trapped individuals based on rubble density and uncertainty.\n"
-        f"- Adjust response recommendations accordingly.\n\n"
-        f"Assessed severity: {severity}"
+        f"DETECTION DATA TO PROCESS:\n"
+        f"Detection summary: {summary}\n"
+        f"Confirmed people: {people_strong}\n"
+        f"Possible people: {people_weak}\n"
+        f"Estimated people: {people_estimate}\n"
+        f"Assessed severity: {severity}\n\n"
+        f"Now generate the dispatch report using this exact structure and formatting based on the detection data provided above."
     )
 
 
@@ -198,51 +227,56 @@ def _fallback_report(
 
     # --- Situation overview ---
     situation = f"Automated detection analysis reports: {summary}"
+    
+    # --- Risks ---
+    risks = []
+    if severity == "HIGH":
+        risks.append("• HIGH RISK of secondary collapse")
+        risks.append("• CRITICAL condition likely for trapped victims")
+    elif severity == "MEDIUM":
+        risks.append("• MODERATE RISK of structural instability")
+    else:
+        risks.append("• LOW RISK of immediate structural failure")
+    
+    risks_str = "\n".join(risks)
 
     # --- Actions (adapted to detection results) ---
     actions = []
     if people_strong > 0 or people_weak > 0:
-        actions.append("Deploy search-and-rescue team to the identified location immediately.")
-        actions.append("Prioritise areas with confirmed person detections for extraction.")
+        actions.append("Deploy search-and-rescue team to the identified location immediately")
+        actions.append("Prioritise areas with confirmed person detections for extraction")
     if people_weak > 0:
-        actions.append(
-            "Conduct secondary sweep — low-confidence detections suggest "
-            "additional survivors may be obscured or partially visible."
-        )
-    actions.append("Establish a safety perimeter and assess structural integrity before entry.")
-    actions.append("Coordinate with local emergency medical services for on-site triage.")
+        actions.append("Conduct secondary sweep for partially obscured survivors")
+    actions.append("Establish a safety perimeter and assess structural integrity before entry")
+    actions.append("Coordinate with local emergency medical services for on-site triage")
     if people_strong == 0 and people_weak == 0:
-        actions.append("Dispatch reconnaissance team for manual visual assessment of the area.")
+        actions.append("Dispatch reconnaissance team for manual visual assessment of the area")
 
-    actions_str = "\n".join(f"  {i+1}. {a}" for i, a in enumerate(actions))
+    actions_str = "\n".join(f"{i+1}. {a}" for i, a in enumerate(actions))
 
     # --- Resources ---
     if severity == "HIGH":
-        resources = (
-            "  • 4–6 search-and-rescue personnel\n"
-            "  • Medical unit with trauma capability\n"
-            "  • Heavy extrication equipment (if structural collapse present)\n"
-            "  • Communication relay for coordination"
-        )
+        personnel = "• Search and Rescue Technicians\n• Medical Personnel (Trauma)"
+        vehicles = "• Heavy Rescue Units\n• Ambulances"
+        equipment = "• Heavy extrication equipment\n• Communication relay"
     elif severity == "MEDIUM":
-        resources = (
-            "  • 2–4 first responders\n"
-            "  • Medical unit on standby\n"
-            "  • Portable rescue equipment"
-        )
+        personnel = "• First Responders"
+        vehicles = "• Utility Vehicles\n• Ambulances"
+        equipment = "• Portable rescue equipment\n• Basic medical supplies"
     else:
-        resources = (
-            "  • 2 reconnaissance personnel\n"
-            "  • Basic first-aid kit\n"
-            "  • Drone for aerial survey (if available)"
-        )
+        personnel = "• Reconnaissance Personnel"
+        vehicles = "• Command Vehicle"
+        equipment = "• Basic first-aid kit\n• Drone for aerial survey"
 
     report = (
-        f"Situation Overview:\n{situation}\n\n"
-        f"Recommended Actions:\n{actions_str}\n\n"
-        f"Resource Estimate:\n{resources}\n\n"
-        f"Note: AI analysis temporarily unavailable ({reason}). "
-        f"Report generated from detection data only."
+        f"SITUATION OVERVIEW\n{situation}\n\n"
+        f"RISKS\n{risks_str}\n\n"
+        f"RECOMMENDED ACTIONS\n{actions_str}\n\n"
+        f"RESOURCE REQUIREMENTS\n\n"
+        f"PERSONNEL\n{personnel}\n\n"
+        f"VEHICLES\n{vehicles}\n\n"
+        f"EQUIPMENT\n{equipment}\n\n"
+        f"NOTE\n• AI analysis temporarily unavailable ({reason})"
     )
 
     return {
