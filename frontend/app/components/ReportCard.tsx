@@ -1,11 +1,8 @@
 "use client";
 
-// ADDED CODE START — Import useState for copy feedback
 import { useState } from "react";
-// ADDED CODE END
-
 import { motion } from "framer-motion";
-import { FileText, AlertTriangle, Cpu, Copy, Download, Check, ShieldAlert } from "lucide-react";
+import { FileText, AlertTriangle, Cpu, Copy, Download, Check } from "lucide-react";
 
 interface ReportCardProps {
   report: string;
@@ -14,8 +11,6 @@ interface ReportCardProps {
 
 export default function ReportCard({ report, aiSource }: ReportCardProps) {
   const isFallback = aiSource !== "gemini";
-
-  // ADDED CODE START — Feature 3: Copy state
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -39,10 +34,25 @@ export default function ReportCard({ report, aiSource }: ReportCardProps) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
-  // ADDED CODE END
 
   // Split report into lines for typewriter effect
   const lines = report.split("\n");
+
+  // Helper to parse **bold** text without needing a heavy markdown library
+  const renderFormattedLine = (line: string) => {
+    if (!line) return "\u00A0";
+    const parts = line.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={index} className="font-bold text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   return (
     <motion.div
@@ -50,25 +60,11 @@ export default function ReportCard({ report, aiSource }: ReportCardProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className={`relative overflow-hidden rounded-none p-5 border backdrop-blur-md ${
-        isFallback
+      className={`relative overflow-hidden rounded-none p-5 border backdrop-blur-md ${isFallback
           ? "bg-amber-950/20 border-amber-alert/20"
           : "bg-slate-900/40 border-cyan-glow/15"
-      }`}
+        }`}
     >
-      {/* Holographic Watermark */}
-      <motion.div
-        className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 40, ease: "linear", repeat: Infinity }}
-      >
-        {isFallback ? (
-          <AlertTriangle className="w-64 h-64 text-amber-alert/5" />
-        ) : (
-          <ShieldAlert className="w-64 h-64 text-cyan-glow/5" />
-        )}
-      </motion.div>
-
       {/* Content Container (z-10) */}
       <div className="relative z-10">
         <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-glow/60 mb-3 flex items-center gap-2 border-b border-cyan-glow/10 pb-3">
@@ -96,7 +92,7 @@ export default function ReportCard({ report, aiSource }: ReportCardProps) {
               transition={{ duration: 0.03, delay: i * 0.04 }}
               className="block"
             >
-              {line || "\u00A0"}
+              {renderFormattedLine(line)}
             </motion.span>
           ))}
         </div>
@@ -106,17 +102,15 @@ export default function ReportCard({ report, aiSource }: ReportCardProps) {
             SOURCE
           </span>
           <span
-            className={`text-[10px] font-mono px-2 py-0.5 rounded-none border flex items-center gap-1.5 ${
-              isFallback
+            className={`text-[10px] font-mono px-2 py-0.5 rounded-none border flex items-center gap-1.5 ${isFallback
                 ? "bg-amber-950/30 text-amber-alert border-amber-alert/20"
                 : "bg-emerald-950/30 text-emerald-400 border-emerald-500/20"
-            }`}
+              }`}
           >
             <Cpu className="w-3 h-3" />
             {aiSource.toUpperCase()}
           </span>
 
-          {/* ADDED CODE START — Feature 3: Copy & Download buttons */}
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={handleCopy}
@@ -142,7 +136,6 @@ export default function ReportCard({ report, aiSource }: ReportCardProps) {
               DOWNLOAD
             </button>
           </div>
-          {/* ADDED CODE END */}
         </div>
       </div>
     </motion.div>
